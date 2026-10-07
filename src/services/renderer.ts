@@ -12,7 +12,12 @@ export class MotionRenderer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Failed to get canvas 2D context');
+    }
+    this.ctx = ctx;
+    console.log('[MotionRenderer] Initialized with canvas', canvas.width, 'x', canvas.height);
   }
 
   setCallbacks(onSceneChange: (index: number) => void, onComplete: () => void) {
@@ -23,6 +28,8 @@ export class MotionRenderer {
   renderScene(scene: Scene, progress: number) {
     const { width, height } = this.canvas;
     const ctx = this.ctx;
+
+    console.log('[MotionRenderer] Rendering scene:', scene.text, 'progress:', progress.toFixed(2), 'size:', width, 'x', height);
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);

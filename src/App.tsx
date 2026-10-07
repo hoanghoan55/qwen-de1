@@ -52,19 +52,42 @@ export default function App() {
   const totalDuration = scenes.reduce((sum, s) => sum + s.duration, 0);
   const isLoading = agentState.status === 'generating_script' || agentState.status === 'generating_tts' || agentState.status === 'rendering';
 
-  // Initialize renderer
+  // Initialize renderer when canvas is available (workspace view)
   useEffect(() => {
-    if (canvasRef.current && !rendererRef.current) {
+    if (view === 'workspace' && canvasRef.current) {
+      // Always create new renderer when entering workspace
+      console.log('[MotionGraphics] Initializing renderer...');
       rendererRef.current = new MotionRenderer(canvasRef.current);
+      
+      // Render initial scene if scenes already exist
+      if (scenes.length > 0) {
+        console.log('[MotionGraphics] Rendering initial scene...');
+        setTimeout(() => {
+          if (rendererRef.current && scenes[currentSceneIndex]) {
+            rendererRef.current.renderStaticScene(scenes[currentSceneIndex], 0.5);
+          }
+        }, 50);
+      }
     }
-  }, []);
+    // Reset renderer when going back to landing
+    if (view === 'landing') {
+      rendererRef.current = null;
+    }
+  }, [view, scenes, currentSceneIndex]);
 
   // Render current scene when not playing
   useEffect(() => {
-    if (scenes.length > 0 && canvasRef.current && !isPlaying && rendererRef.current) {
-      rendererRef.current.renderStaticScene(scenes[currentSceneIndex], 0.5);
+    if (view === 'workspace' && scenes.length > 0 && rendererRef.current && !isPlaying) {
+      console.log('[MotionGraphics] Rendering scene', currentSceneIndex);
+      // Small delay to ensure canvas is ready
+      const timer = setTimeout(() => {
+        if (rendererRef.current) {
+          rendererRef.current.renderStaticScene(scenes[currentSceneIndex], 0.5);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [scenes, currentSceneIndex, isPlaying]);
+  }, [view, scenes, currentSceneIndex, isPlaying]);
 
   const handleGenerate = useCallback(async (inputPrompt: string) => {
     setAgentState({
@@ -81,6 +104,7 @@ export default function App() {
         setAgentState(prev => ({ ...prev, message: msg, progress: 20 }));
       });
 
+      console.log('[MotionGraphics] Generated scenes:', generatedScenes.length);
       setScenes(generatedScenes);
       setCurrentSceneIndex(0);
       setView('workspace');
@@ -524,12 +548,17 @@ export default function App() {
         <div className="flex-1 flex flex-col">
           {/* Canvas */}
           <div className="flex-1 flex items-center justify-center p-4">
-            <div className="relative w-full max-w-4xl aspect-video bg-background-elevated rounded-xl border border-border overflow-hidden">
+            <div className="relative w-full max-w-4xl aspect-video bg-background-elevated rounded-xl border border-border overflow-hidden flex items-center justify-center">
               <canvas
                 ref={canvasRef}
                 width={1280}
                 height={720}
-                className="w-full h-full object-contain"
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
               />
               
               {/* Play overlay */}
