@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Test - Motion Graphics Agent</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+    }
+    
+    .test-section {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .test-section h2 {
+      margin-bottom: 15px;
+      color: #fff;
+      font-size: 18px;
+    }
+    
+    .test-item {
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .test-item h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #ccc;
+    }
+    
+    button {
+      background: #0B84F3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    button:hover {
+      background: #0a75d9;
+    }
+    
+    button:disabled {
+      background: #333;
+      cursor: not-allowed;
+    }
+    
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .result.success {
+      background: #0f2a1a;
+      border: 1px solid #10b981;
+      color: #10b981;
+    }
+    
+    .result.error {
+      background: #2a0f0f;
+      border: 1px solid #ef4444;
+      color: #ef4444;
+    }
+    
+    .result.info {
+      background: #0f1a2a;
+      border: 1px solid #3b82f6;
+      color: #3b82f6;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    
+    .status.pass {
+      background: #10b981;
+      color: white;
+    }
+    
+    .status.fail {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .status.pending {
+      background: #6b7280;
+      color: white;
+    }
+    
+    input[type="text"] {
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #0B84F3;
+    }
+    
+    .config-info {
+      background: #0f1a2a;
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    
+    .config-info code {
+      background: #0a0a0a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔌 API Connection Test</h1>
+    <p class="subtitle">Kiểm tra kết nối LLM và TTS APIs từ browser</p>
+    
+    <div class="config-info">
+      <strong>⚙️ Cấu hình hiện tại:</strong><br>
+      <strong>LLM:</strong> <code>https://9router-production-bcf1.up.railway.app/v1</code><br>
+      <strong>TTS:</strong> <code>https://tts.delyai.site</code>
+    </div>
+    
+    <!-- LLM Test Section -->
+    <div class="test-section">
+      <h2>🤖 LLM API (9Router) <span id="llm-status" class="status pending">Chưa test</span></h2>
+      
+      <div class="test-item">
+        <h3>1. Kiểm tra Models</h3>
+        <button onclick="testLLMModels()">Test Models Endpoint</button>
+        <div id="llm-models-result" class="result info">Click button để test...</div>
+      </div>
+      
+      <div class="test-item">
+        <h3>2. Tạo Script với LLM</h3>
+        <input type="text" id="llm-prompt" placeholder="Nhập prompt test..." value="Create a simple intro animation">
+        <button onclick="testLLMGenerate()">Test Generate Script</button>
+        <div id="llm-generate-result" class="result info">Click button để test...</div>
+      </div>
+    </div>
+    
+    <!-- TTS Test Section -->
+    <div class="test-section">
+      <h2>🎙️ TTS API <span id="tts-status" class="status pending">Chưa test</span></h2>
+      
+      <div class="test-item">
+        <h3>1. Lấy danh sách Voices</h3>
+        <button onclick="testTTSVoices()">Test Voices Endpoint</button>
+        <div id="tts-voices-result" class="result info">Click button để test...</div>
+      </div>
+      
+      <div class="test-item">
+        <h3>2. Tạo giọng nói</h3>
+        <input type="text" id="tts-text" placeholder="Nhập text để chuyển thành giọng nói..." value="Xin chào, đây là test TTS">
+        <button onclick="testTTSGenerate()">Test TTS Generate</button>
+        <div id="tts-generate-result" class="result info">Click button để test...</div>
+        <audio id="tts-audio" controls style="display: none; width: 100%; margin-top: 10px;"></audio>
+      </div>
+    </div>
+    
+    <!-- Run All Tests -->
+    <div class="test-section">
+      <h2>🚀 Chạy tất cả tests</h2>
+      <button onclick="runAllTests()" style="background: #10b981;">Chạy tất cả tests</button>
+      <div id="all-tests-result" class="result info">Click button để chạy tất cả tests...</div>
+    </div>
+  </div>
+  
+  <script>
+    const LLM_BASE_URL = 'https://9router-production-bcf1.up.railway.app/v1';
+    const LLM_API_KEY = 'sk-3a3d0c15eaf15d37-y9i1da-9ceeb339';
+    const TTS_BASE_URL = 'https://tts.delyai.site';
+    const TTS_API_KEY = 'WwlIYBeO3SxiN4Wpa7swanK7ozOl2nQWLpcb2iRnRvY';
+    
+    function updateResult(elementId, message, type = 'info') {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = `result ${type}`;
+    }
+    
+    function updateStatus(elementId, status) {
+      const element = document.getElementById(elementId);
+      element.textContent = status;
+      element.className = `status ${status.toLowerCase().includes('pass') ? 'pass' : status.toLowerCase().includes('fail') ? 'fail' : 'pending'}`;
+    }
+    
+    // LLM Tests
+    async function testLLMModels() {
+      updateResult('llm-models-result', 'Đang test...', 'info');
+      
+      try {
+        const response = await fetch(`${LLM_BASE_URL}/models`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${LLM_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const models = data.data || [];
+        
+        updateResult('llm-models-result', 
+          `✅ PASS\n\nTìm thấy ${models.length} models:\n${models.slice(0, 10).map(m => `  • ${m.id}`).join('\n')}${models.length > 10 ? `\n  ... và ${models.length - 10} models khác` : ''}`,
+          'success'
+        );
+        updateStatus('llm-status', 'PASS');
+        
+      } catch (error) {
+        updateResult('llm-models-result', 
+          `❌ FAIL\n\nError: ${error.message}\n\nCó thể do:\n  • CORS policy\n  • API key không hợp lệ\n  • Network error`,
+          'error'
+        );
+        updateStatus('llm-status', 'FAIL');
+      }
+    }
+    
+    async function testLLMGenerate() {
+      const prompt = document.getElementById('llm-prompt').value;
+      updateResult('llm-generate-result', 'Đang test...', 'info');
+      
+      try {
+        const response = await fetch(`${LLM_BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LLM_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant. Respond in JSON format.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || 'No content';
+        
+        updateResult('llm-generate-result', 
+          `✅ PASS\n\nResponse:\n${content.substring(0, 500)}${content.length > 500 ? '...' : ''}`,
+          'success'
+        );
+        updateStatus('llm-status', 'PASS');
+        
+      } catch (error) {
+        updateResult('llm-generate-result', 
+          `❌ FAIL\n\nError: ${error.message}\n\nCó thể do:\n  • CORS policy\n  • API key không hợp lệ\n  • Model không tồn tại\n  • Network error`,
+          'error'
+        );
+        updateStatus('llm-status', 'FAIL');
+      }
+    }
+    
+    // TTS Tests
+    async function testTTSVoices() {
+      updateResult('tts-voices-result', 'Đang test...', 'info');
+      
+      try {
+        const response = await fetch(`${TTS_BASE_URL}/v1/voices`, {
+          method: 'GET',
+          headers: {
+            'x-api-key': TTS_API_KEY
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const voices = data.voices || [];
+        
+        updateResult('tts-voices-result', 
+          `✅ PASS\n\nTìm thấy ${voices.length} voices:\n${voices.slice(0, 10).map(v => `  • ${v.voice_id}: ${v.name}`).join('\n')}${voices.length > 10 ? `\n  ... và ${voices.length - 10} voices khác` : ''}`,
+          'success'
+        );
+        updateStatus('tts-status', 'PASS');
+        
+      } catch (error) {
+        updateResult('tts-voices-result', 
+          `❌ FAIL\n\nError: ${error.message}\n\nCó thể do:\n  • CORS policy\n  • API key không hợp lệ\n  • Network error`,
+          'error'
+        );
+        updateStatus('tts-status', 'FAIL');
+      }
+    }
+    
+    async function testTTSGenerate() {
+      const text = document.getElementById('tts-text').value;
+      updateResult('tts-generate-result', 'Đang test...', 'info');
+      
+      try {
+        const response = await fetch(`${TTS_BASE_URL}/v1/text-to-speech/default`, {
+          method: 'POST',
+          headers: {
+            'x-api-key': TTS_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input: text,
+            voice: 'default',
+            response_format: 'mp3'
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioElement = document.getElementById('tts-audio');
+        audioElement.src = audioUrl;
+        audioElement.style.display = 'block';
+        
+        updateResult('tts-generate-result', 
+          `✅ PASS\n\nĐã tạo audio thành công!\nSize: ${(audioBlob.size / 1024).toFixed(2)} KB\nType: ${audioBlob.type}\n\nAudio player đã hiển thị bên dưới.`,
+          'success'
+        );
+        updateStatus('tts-status', 'PASS');
+        
+      } catch (error) {
+        updateResult('tts-generate-result', 
+          `❌ FAIL\n\nError: ${error.message}\n\nCó thể do:\n  • CORS policy\n  • API key không hợp lệ\n  • Voice ID không tồn tại\n  • Network error`,
+          'error'
+        );
+        updateStatus('tts-status', 'FAIL');
+      }
+    }
+    
+    // Run all tests
+    async function runAllTests() {
+      updateResult('all-tests-result', 'Đang chạy tất cả tests...\n', 'info');
+      
+      let results = [];
+      
+      // Test LLM Models
+      try {
+        const response = await fetch(`${LLM_BASE_URL}/models`, {
+          headers: { 'Authorization': `Bearer ${LLM_API_KEY}` }
+        });
+        results.push(`✅ LLM Models: ${response.ok ? 'PASS' : 'FAIL'}`);
+      } catch (e) {
+        results.push(`❌ LLM Models: FAIL - ${e.message}`);
+      }
+      
+      // Test LLM Generate
+      try {
+        const response = await fetch(`${LLM_BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LLM_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'openai/gpt-4o-mini',
+            messages: [{ role: 'user', content: 'Test' }],
+            max_tokens: 10
+          })
+        });
+        results.push(`✅ LLM Generate: ${response.ok ? 'PASS' : 'FAIL'}`);
+      } catch (e) {
+        results.push(`❌ LLM Generate: FAIL - ${e.message}`);
+      }
+      
+      // Test TTS Voices
+      try {
+        const response = await fetch(`${TTS_BASE_URL}/v1/voices`, {
+          headers: { 'x-api-key': TTS_API_KEY }
+        });
+        results.push(`✅ TTS Voices: ${response.ok ? 'PASS' : 'FAIL'}`);
+      } catch (e) {
+        results.push(`❌ TTS Voices: FAIL - ${e.message}`);
+      }
+      
+      // Test TTS Generate
+      try {
+        const response = await fetch(`${TTS_BASE_URL}/v1/text-to-speech/default`, {
+          method: 'POST',
+          headers: {
+            'x-api-key': TTS_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input: 'Test',
+            voice: 'default'
+          })
+        });
+        results.push(`✅ TTS Generate: ${response.ok ? 'PASS' : 'FAIL'}`);
+      } catch (e) {
+        results.push(`❌ TTS Generate: FAIL - ${e.message}`);
+      }
+      
+      updateResult('all-tests-result', results.join('\n'), 'info');
+    }
+  </script>
+</body>
+</html>
